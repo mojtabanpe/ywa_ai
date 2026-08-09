@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SourceType {
+  RSS
+  REDDIT
+  YOUTUBE
+  INSTAGRAM
+}
+enum DiscoveryRunStatus {
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+}
+enum ContentWorkflowStatus {
+  DISCOVERED
+  APPROVED
+  SCRIPT_GENERATING
+  SCRIPT_READY
+  SCRIPT_FAILED
+}
+enum ScriptGenerationLogLevel {
+  INFO
+  ERROR
+}
+
+model Source {
+  id String @id @default(cuid())
+  name String
+  type SourceType
+  url String
+  isEnabled Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  contents Content[]
+  @@unique([type, url])
+}
+model Content {
+  id String @id @default(cuid())
+  sourceId String
+  externalId String
+  url String
+  author String?
+  title String
+  description String?
+  publishedAt DateTime?
+  rawData Json?
+  createdAt DateTime @default(now())
+  archivedAt DateTime?
+  workflowStatus ContentWorkflowStatus @default(DISCOVERED)
+  scriptError String?
+  scriptProgress Int @default(0)
+  source Source @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  score ContentScore?
+  reelScript ReelScript?
+  scriptLogs ScriptGenerationLog[]
+  @@unique([sourceId, externalId])
+  @@index([publishedAt])
+  @@index([archivedAt])
+}
+model ScriptGenerationLog {
+  id String @id @default(cuid())
+  contentId String
+  level ScriptGenerationLogLevel @default(INFO)
+  message String
+  createdAt DateTime @default(now())
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  @@index([contentId, createdAt])
+}
+model ReelScript {
+  id String @id @default(cuid())
+  contentId String @unique
+  hook String
+  narration String
+  visualPlan String
+  caption String
+  cta String
+  model String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+}
+model ContentScore {
+  id String @id @default(cuid())
+  contentId String @unique
+  viralScore Int
+  noveltyScore Int
+  usefulnessScore Int
+  persianAudienceScore Int
+  visualScore Int
+  totalScore Int
+  reason String
+  createdAt DateTime @default(now())
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  @@index([totalScore])
+}
+model DiscoveryRun {
+  id String @id @default(cuid())
+  status DiscoveryRunStatus @default(QUEUED)
+  sourceCount Int @default(0)
+  itemCount Int @default(0)
+  progress Int @default(0)
+  currentStep String?
+  error String?
+  startedAt DateTime?
+  finishedAt DateTime?
+  createdAt DateTime @default(now())
+  logs DiscoveryRunLog[]
+}
+model DiscoveryRunLog {
+  id String @id @default(cuid())
+  runId String
+  level ScriptGenerationLogLevel @default(INFO)
+  message String
+  createdAt DateTime @default(now())
+  run DiscoveryRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  @@index([runId, createdAt])
+}
