@@ -4,10 +4,13 @@ Daily Persian AI Reel discovery MVP. The current source is an RSS provider; its 
 
 ## Run locally
 
-1. `docker compose up -d`
-2. `npx prisma migrate dev --name init`
-3. In separate terminals: `npx nx serve api` and `npx nx serve admin`
-4. Open `http://localhost:4200`, then choose **اجرای Discovery**.
+1. `pnpm install`
+2. `docker compose up -d`
+3. `pnpm exec prisma migrate dev --name init`
+4. In separate terminals: `pnpm nx serve api` and `pnpm nx serve admin`
+5. Open `http://localhost:4200`, then choose **اجرای Discovery**.
+
+This repo uses pnpm (see `packageManager` in `package.json`). Enable it with `corepack enable` if you do not have it installed.
 
 API: `POST /api/discovery/runs`, `GET /api/discovery/runs`, `GET /api/discovery/topics`.
 
@@ -17,4 +20,4 @@ Each new Discovery run archives prior unapproved topics. Approved work and ready
 
 ## Free Reel renderer
 
-`VIDEO_MODE=free npm run reel:free -- --url "https://huggingface.co/blog/grabette"` creates a source-grounded Persian 9:16 MP4 in `output/<slug>/`. It only fetches publicly available media referenced by the article and renders with FFmpeg; it never invokes a paid video-generation API. By default it uses local `espeak-ng` when available, otherwise macOS `say` as a zero-install fallback. Set `FREE_TTS_PROVIDER=espeak-ng` after installing that free local tool for the better Persian voice path.
+`VIDEO_MODE=free pnpm reel:free -- --url "https://huggingface.co/blog/grabette"` creates a source-grounded Persian 9:16 MP4 in `output/<slug>/`. It only fetches publicly available media referenced by the article and renders with FFmpeg; it never invokes a paid video-generation API. By default it uses local `espeak-ng` when available, otherwise macOS `say` as a zero-install fallback. Set `FREE_TTS_PROVIDER=espeak-ng` after installing that free local tool for the better Persian voice path.
