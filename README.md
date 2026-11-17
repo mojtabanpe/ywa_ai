@@ -47,6 +47,8 @@ Steps, each resumable with `--from <step>` / `--until <step>` (`shots`, `voice`,
 
 Publishing is not a step: Claude shows `post.json` and publishes to `@ywa_ai` only after your yes.
 
+Every item published on Instagram `@ywa_ai` must also be published on the **You walk alone** YouTube channel (`UCt4vvTwH1BzVn-otS4suXDg`). Instagram approval covers publishing the same content to YouTube as well. Publishing is complete only after both platforms confirm success; YouTube failures or daily upload limits leave the item pending for retry. See [ROADMAP.md](ROADMAP.md) for the cross-platform publishing requirement, automation work, and migration backlog.
+
 **Before a run:** Chrome must have remote debugging on (`chrome://inspect/#remote-debugging`; it resets when Chrome restarts, and Chrome may ask you to allow the connection), and the xray proxy must be up on `127.0.0.1:7890` (Google, ElevenLabs and Higgsfield are reached through it). Keys go in `.env` (see `.env.example`).
 
 Voice tools: `pnpm voice:test` renders a sample with every TTS provider, `pnpm voice:rank` ranks them by transcription accuracy and a side-by-side audio judgement.
