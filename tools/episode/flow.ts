@@ -9,9 +9,8 @@ import { copyFile, readFile, writeFile } from 'node:fs/promises';
 import { basename, dirname, extname, join } from 'node:path';
 import { Brief, outputDir, Shot } from './brief';
 import { characterFile } from './characters';
-import { env, log, sleep } from './lib';
+import { chromeEndpoint, env, log, sleep } from './lib';
 
-const CDP = env('CHROME_CDP_WS') || 'ws://127.0.0.1:9222/devtools/browser';
 const GENERATION_TIMEOUT_MS = 10 * 60_000;
 
 /** Flow's model menu labels. Omni 1.2 Flash is the default (owner's choice): 24 credits per 8 s clip; Veo 3.1 Lite is 10. */
@@ -30,7 +29,7 @@ async function connect() {
   let opened = false;
   for (let attempt = 1; ; attempt++) {
     try {
-      browser = await chromium.connectOverCDP(CDP, { timeout: 30_000 });
+      browser = await chromium.connectOverCDP(await chromeEndpoint(), { timeout: 30_000 });
       return browser;
     } catch (error) {
       const message = (error as Error).message;
@@ -41,7 +40,7 @@ async function connect() {
         opened = true;
       }
       if (Date.now() > deadline) {
-        throw new Error(`cannot reach your Chrome at ${CDP} after ${attempt} tries: tick "Allow remote debugging" on chrome://inspect/#remote-debugging and click Allow (${message.slice(0, 120)})`);
+        throw new Error(`cannot reach the automation Chrome after ${attempt} tries: tick "Allow remote debugging" on chrome://inspect/#remote-debugging and click Allow (${message.slice(0, 120)})`);
       }
       await sleep(5_000);
     }

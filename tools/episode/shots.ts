@@ -56,8 +56,9 @@ async function higgsfieldShot(shot: Shot, file: string) {
   throw new Error('Higgsfield timed out after 15 minutes');
 }
 
-/** Flow accounts in use order: /u/1 holds most credits, /u/0 is the backup. The third account has no Flow access. */
-const FLOW_ACCOUNTS = (env('FLOW_ACCOUNTS') || '1,0').split(',').map(Number);
+/** Flow accounts in use order, as signed in to the automation Chrome: /u/0 = main (most credits), /u/1 = backup.
+ * (In the everyday Chrome the order was reversed; set FLOW_ACCOUNTS=1,0 there.) */
+export const FLOW_ACCOUNTS = (env('FLOW_ACCOUNTS') || '0,1').split(',').map(Number);
 
 export async function makeShots(brief: Brief) {
   const used: Array<{ shot: number; provider: string }> = [];

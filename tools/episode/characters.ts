@@ -44,6 +44,7 @@ async function flowPortrait(
 export async function makeCharacters(brief: Brief) {
   // Imported here to avoid a cycle: flow.ts needs characterFile from this module.
   const { flowImage, closeFlow } = await import('./flow');
+  const { FLOW_ACCOUNTS } = await import('./shots');
   try {
     for (const character of brief.characters ?? []) {
       const file = characterFile(brief.slug, character.id);
@@ -54,8 +55,7 @@ export async function makeCharacters(brief: Brief) {
       await mkdir(join(outputDir(brief.slug), 'characters'), { recursive: true });
       const prompt = portraitPrompt(character);
       const { name } = await firstSuccess(`character ${character.id}`, [
-        { name: 'flow-u1', attempt: () => flowPortrait(flowImage, brief, prompt, file, 1) },
-        { name: 'flow-u0', attempt: () => flowPortrait(flowImage, brief, prompt, file, 0) },
+        ...FLOW_ACCOUNTS.map((account) => ({ name: `flow-u${account}`, attempt: () => flowPortrait(flowImage, brief, prompt, file, account) })),
         { name: 'gemini-image', attempt: () => geminiImage(prompt, file) },
       ]);
       await log(`character ${character.id}: reference image made with ${name}; show it to the owner before making shots`);

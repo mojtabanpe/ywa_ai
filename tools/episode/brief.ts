@@ -45,6 +45,8 @@ export interface Brief {
   flowModel?: 'veo-3.1-lite' | 'omni-1.2-flash';
   /** Owner-approved exception to the 25 s limit (e.g. shots already paid for before the rule). */
   allowLonger?: boolean;
+  /** YouTube Shorts title (tools/youtube.ts); defaults to "<title> | ایران در دنیای موازی". */
+  youtubeTitle?: string;
   /** Recurring characters; their reference portraits are made once and reused in every shot that names them. */
   characters?: Character[];
 }

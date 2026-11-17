@@ -91,3 +91,28 @@ export async function firstSuccess<T>(label: string, candidates: Array<{ name: s
   }
   throw new Error(`${label}: every provider failed\n${failures.join('\n')}`);
 }
+
+/**
+ * The Chrome the pipeline drives: the dedicated automation Chrome (tools/automation-chrome.sh, port 9223, no
+ * "allow" prompt), started on demand. CHROME_CDP overrides it, e.g. ws://127.0.0.1:9222/devtools/browser for the
+ * everyday Chrome with the chrome://inspect toggle.
+ */
+export async function chromeEndpoint() {
+  const override = env('CHROME_CDP') || env('CHROME_CDP_WS');
+  if (override) return override;
+  const port = env('YWA_CHROME_PORT') || '9223';
+  const url = `http://127.0.0.1:${port}`;
+  const up = async () => {
+    try {
+      const response = await fetch(`${url}/json/version`, { signal: AbortSignal.timeout(2000) });
+      return response.ok;
+    } catch {
+      return false;
+    }
+  };
+  if (!(await up())) {
+    await log('chrome: starting the automation Chrome (tools/automation-chrome.sh)');
+    run('zsh', ['tools/automation-chrome.sh']);
+  }
+  return url;
+}
