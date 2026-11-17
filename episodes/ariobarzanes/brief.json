@@ -1,0 +1,49 @@
+{
+  "episode": 11,
+  "driveNumber": 12,
+  "slug": "ariobarzanes",
+  "title": "اگه آریوبرزن دربند پارس رو نگه می‌داشت",
+  "subtitle": "ایران در دنیای موازی",
+  "fictional": true,
+  "narration": "سال سیصد و سی پیش از میلاد. اسکندر با سپاهی بزرگ به دربند پارس می‌رسه؛ تنها راه رسیدن به تخت‌جمشید. اونجا آریوبرزن با چند صد سرباز منتظرشه. سنگ‌ها از دل کوه فرو می‌ریزن و سپاه مقدونی عقب می‌کشه. توی تاریخ واقعی، یه چوپان راه مخفی کوه رو نشونشون داد. ولی تو این دنیای موازی، اون راه هیچ‌وقت پیدا نمی‌شه. تخت‌جمشید هیچ‌وقت نمی‌سوزه. و حالا، دو هزار و سیصد سال بعد، هنوز زنده‌ست. تو جای آریوبرزن بودی، می‌موندی یا عقب می‌کشیدی؟",
+  "shots": [
+    {
+      "prompt": "Epic aerial establishing shot of a narrow snowy mountain gorge in the Zagros mountains at dawn, a vast ancient Macedonian army with long spears and round shields marching in a long column through the valley floor, mist and cold light, cinematic, photorealistic, vertical 9:16, no text, no logos",
+      "seconds": 8
+    },
+    {
+      "prompt": "Close-up of an ancient Persian Achaemenid commander with a dark beard, bronze scale armor and a purple cloak standing on a rocky cliff edge above a mountain pass, wind blowing his cloak, determined gaze, Persian soldiers with wicker shields and bows behind him, cinematic lighting, photorealistic, vertical 9:16, no text, no logos",
+      "seconds": 8
+    },
+    {
+      "prompt": "Huge boulders and rocks crashing down a steep mountainside into a narrow gorge, ancient soldiers below raising shields and scattering, clouds of dust, dramatic epic battle atmosphere, no gore, cinematic, photorealistic, vertical 9:16, no text, no logos",
+      "seconds": 8
+    },
+    {
+      "prompt": "Ancient Persian soldiers holding a mountain pass at golden sunset, raising banners and spears in victory as a distant enemy army retreats down the valley, warm light, heroic slow camera push-in, cinematic, photorealistic, vertical 9:16, no text, no logos",
+      "seconds": 8
+    },
+    {
+      "prompt": "Persepolis in the year 2026, fully intact ancient Achaemenid palace with tall stone columns and winged bull statues, blended with a modern Persian city of glass towers and gardens around it, people walking, golden hour, slow aerial drone shot, cinematic, photorealistic, vertical 9:16, no text, no logos",
+      "seconds": 8
+    }
+  ],
+  "caption": "اگه آریوبرزن دربند پارس رو نگه می‌داشت، تخت‌جمشید امروز چه شکلی بود؟ 🏔️🔥\n\nسال ۳۳۰ پیش از میلاد...\nاسکندر به تنها راه رسیدن به تخت‌جمشید می‌رسه و آریوبرزن با چند صد سرباز جلوش می‌ایسته.\nتو تاریخ واقعی، یه راه مخفی دربند رو سقوط داد.\nتو این دنیای موازی، اون راه هیچ‌وقت پیدا نمی‌شه.\n\n🎬 قسمت یازدهم | اگر آریوبرزن پیروز می‌شد\n🌌 ایران در دنیای موازی\n🤖 روایتی کاملاً تخیلی، ساخته‌شده با هوش مصنوعی\n\nتو جای آریوبرزن بودی، می‌موندی یا عقب می‌کشیدی؟ 👇",
+  "hashtags": [
+    "آریوبرزن",
+    "دربند_پارس",
+    "تخت_جمشید",
+    "هخامنشیان",
+    "اسکندر",
+    "تاریخ_ایران",
+    "ایران",
+    "تاریخ_جایگزین",
+    "دنیای_موازی",
+    "هوش_مصنوعی",
+    "Persia",
+    "Persepolis",
+    "YWA_AI"
+  ],
+  "coverAt": 11,
+  "allowLonger": true
+}

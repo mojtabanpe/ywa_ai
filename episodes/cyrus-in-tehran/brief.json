@@ -1,0 +1,54 @@
+{
+  "episode": 12,
+  "driveNumber": 13,
+  "slug": "cyrus-in-tehran",
+  "title": "اگه کوروش یه روز به تهران امروز می‌اومد",
+  "subtitle": "ایران در دنیای موازی",
+  "fictional": true,
+  "narration": "اگه کوروش بزرگ یه روز صبح وسط تهران امروز چشم باز می‌کرد، چی می‌دید؟ ترافیک! ارابه‌هایی که بدون اسب راه می‌رن و مردمی که با یه لوح نورانی حرف می‌زنن. بعد بازار تجریش؛ بوی نون سنگک و چای تازه‌دم. خیلی چیزا براش عجیبه، ولی مهمون‌نوازی این مردم هنوز آشناست. به نظرت کوروش از تهران امروز چی می‌گفت؟",
+  "shots": [
+    {
+      "prompt": "An ancient Persian king (the man in the ingredient image) with a long dark beard, white and purple Achaemenid royal robes and a simple golden crown, standing bewildered on a busy modern Tehran street in the morning, heavy traffic of cars and motorcycles passing, people looking at their smartphones, Azadi Tower in the background, he looks around curiously, cinematic, photorealistic, vertical 9:16, no text, no logos",
+      "seconds": 8,
+      "characters": [
+        "persian-king"
+      ]
+    },
+    {
+      "prompt": "Inside the Tajrish bazaar in Tehran, a smiling Iranian baker hands fresh hot sangak bread to an ancient Persian king (the man in the ingredient image) with a long dark beard and white and purple royal robes, steam rising, glasses of tea, colorful bazaar stalls, warm golden light, cinematic, photorealistic, vertical 9:16, no text, no logos",
+      "seconds": 8,
+      "characters": [
+        "persian-king"
+      ]
+    },
+    {
+      "prompt": "Night, an ancient Persian king (the man in the ingredient image) with a long dark beard and white and purple royal robes standing on a rooftop looking over the glowing city lights of Tehran with Milad Tower and the Alborz mountains in the distance, thoughtful calm expression, slow camera push-in, cinematic, photorealistic, vertical 9:16, no text, no logos",
+      "seconds": 8,
+      "characters": [
+        "persian-king"
+      ]
+    }
+  ],
+  "caption": "اگه کوروش بزرگ یه روز وسط تهران امروز چشم باز می‌کرد، چی می‌دید؟ 👑🚗\n\nترافیک، ارابه‌های بدون اسب، لوح‌های نورانی توی دست مردم…\nولی یه چیزی هنوز آشناست: نون سنگک، چای تازه‌دم و مهمون‌نوازی همین مردم.\n\n🎬 قسمت دوازدهم | کوروش در تهران امروز\n🌌 ایران در دنیای موازی\n🤖 روایتی کاملاً تخیلی، ساخته‌شده با هوش مصنوعی\n\nبه نظرت کوروش از تهران امروز چی می‌گفت؟ 👇",
+  "hashtags": [
+    "کوروش",
+    "کوروش_بزرگ",
+    "تهران",
+    "بازار_تجریش",
+    "برج_آزادی",
+    "ایران",
+    "تاریخ_ایران",
+    "دنیای_موازی",
+    "هوش_مصنوعی",
+    "Tehran",
+    "Persia",
+    "YWA_AI"
+  ],
+  "coverAt": 4,
+  "characters": [
+    {
+      "id": "persian-king",
+      "prompt": "ancient Persian Achaemenid king in his late fifties, wise calm face, long dark beard with some grey, warm brown eyes, olive skin, simple golden crown, white and purple royal robes"
+    }
+  ]
+}

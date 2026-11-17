@@ -38,7 +38,7 @@ pnpm episode <slug>
 
 Steps, each resumable with `--from <step>` / `--until <step>` (`shots`, `voice`, `edit`, `cover`, `qa`, `upload`); everything is written to `output/episodes/<slug>/`:
 
-1. **shots**: Google Flow in your own Chrome (account `/u/1/`, then `/u/0/`; Veo 3.1 Lite by default, 10 credits per 8 s shot, or `"flowModel": "omni-1.2-flash"`), then the Veo API, then Higgsfield. A shot already on disk, or already finished in the episode's Flow project, is reused without spending credits.
+1. **shots**: Google Flow in your own Chrome (account `/u/1/`, then `/u/0/`; Omni 1.2 Flash by default, 24 credits per 8 s shot, or `"flowModel": "veo-3.1-lite"` at 10), then the Veo API, then Higgsfield. A shot already on disk, or already finished in the episode's Flow project, is reused without spending credits.
 2. **voice**: Gemini 3.8 TTS (Kore, Charon) → ElevenLabs v3 → local Piper. Each take is transcribed back and rejected above 8 % read error, then fitted to the edit (max 1.35×).
 3. **edit**: 1080×1920 edit, narration over the shots' own sound, Persian captions timed to the narration, fiction label.
 4. **cover**: a frame of the edit with the episode badge and title inside the 3:4 profile-grid area.

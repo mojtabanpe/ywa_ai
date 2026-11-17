@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { Brief, outputDir, totalSeconds } from './brief';
 import { Caption } from './captions';
 import { renderCover } from './graphics';
-import { ffmpeg, http, log, probe, proxyUrl, run } from './lib';
+import { env, ffmpeg, http, log, probe, run } from './lib';
 import { characterErrorRate, transcribe } from './stt';
 
 export async function makeCover(brief: Brief, clean: string) {
@@ -49,6 +49,8 @@ export async function qa(brief: Brief, final: string, cover: string, captions: C
   add('narration clear in the mix', cer <= 0.12, `read error ${(cer * 100).toFixed(1)} %`);
 
   add('captions inside the video', captions.every((caption) => caption.start >= 0 && caption.start < total), `${captions.length} lines`);
+  const overlaps = captions.filter((caption, i) => i + 1 < captions.length && caption.end > captions[i + 1].start).length;
+  add('one caption line at a time', overlaps === 0, overlaps ? `${overlaps} lines overlap the next one` : 'no overlaps');
   const text = captionText(brief);
   add('Instagram caption ≤ 2200 chars', text.length <= 2200, `${text.length} chars`);
   add('hashtags ≤ 30', brief.hashtags.length <= 30, `${brief.hashtags.length}`);
@@ -66,12 +68,14 @@ export async function qa(brief: Brief, final: string, cover: string, captions: C
 
 /** Drive file name in the ywa folder's convention, e.g. YWA_10_Air_Superiority_FA.mp4. */
 export const driveName = (brief: Brief) =>
-  `YWA_${String(brief.episode).padStart(2, '0')}_${brief.slug.split('-').map((part) => part[0].toUpperCase() + part.slice(1)).join('_')}_FA`;
+  `YWA_${String(brief.driveNumber ?? brief.episode).padStart(2, '0')}_${brief.slug.split('-').map((part) => part[0].toUpperCase() + part.slice(1)).join('_')}_FA`;
 
 export async function upload(brief: Brief, final: string, cover: string) {
   const dir = outputDir(brief.slug);
   const name = driveName(brief);
-  const proxyEnv = { ...process.env, HTTPS_PROXY: proxyUrl(), HTTP_PROXY: proxyUrl() };
+  // Uploads go through xray's SOCKS port: over its HTTP port (7890) large uploads hang at 100 % waiting for Drive's reply.
+  const uploadProxy = env('RCLONE_PROXY_URL') || 'socks5://127.0.0.1:7891';
+  const proxyEnv = { ...process.env, HTTPS_PROXY: uploadProxy, HTTP_PROXY: uploadProxy };
   // The tunnel stalls on long requests: small chunks and short timeouts make a stall fail fast and retry.
   const flags = ['--drive-chunk-size', '4M', '--timeout', '45s', '--contimeout', '15s', '--low-level-retries', '30', '--retries', '5'];
   for (const [source, target] of [[final, `${name}.mp4`], [cover, `${name}_cover.jpg`]]) {

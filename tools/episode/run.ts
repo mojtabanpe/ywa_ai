@@ -1,5 +1,5 @@
 /* Episode pipeline entry point.
- * Usage: pnpm episode <slug> [--from shots|voice|edit|cover|qa|upload] [--until <step>]
+ * Usage: pnpm episode <slug> [--from characters|shots|voice|edit|cover|qa|upload] [--until <step>]
  * Reads episodes/<slug>/brief.json; writes everything to output/episodes/<slug>/. Publishing is not a step:
  * post.json is shown to the owner, and Claude publishes only after the owner's yes. */
 import { existsSync } from 'node:fs';
@@ -8,6 +8,7 @@ import { join } from 'node:path';
 import { assembleClean, assembleFinal } from './assemble';
 import { loadBrief, outputDir } from './brief';
 import { Caption, makeCaptions } from './captions';
+import { makeCharacters } from './characters';
 import { closeFlow } from './flow';
 import { makeCover, qa, upload } from './finish';
 import { closeGraphics, renderFictionLabel } from './graphics';
@@ -15,7 +16,7 @@ import { log, setLogFile } from './lib';
 import { makeShots } from './shots';
 import { makeVoice, VoiceResult } from './voice';
 
-const STEPS = ['shots', 'voice', 'edit', 'cover', 'qa', 'upload'] as const;
+const STEPS = ['characters', 'shots', 'voice', 'edit', 'cover', 'qa', 'upload'] as const;
 type Step = (typeof STEPS)[number];
 
 function parseArgs() {
@@ -28,7 +29,7 @@ function parseArgs() {
     if (value && !STEPS.includes(value as Step)) throw new Error(`--${name} must be one of ${STEPS.join(', ')}`);
     return value as Step | undefined;
   };
-  return { slug, from: flag('from') ?? 'shots', until: flag('until') ?? 'upload' };
+  return { slug, from: flag('from') ?? 'characters', until: flag('until') ?? 'upload' };
 }
 
 async function main() {
@@ -41,6 +42,7 @@ async function main() {
   const readJson = async <T>(name: string) => JSON.parse(await readFile(join(dir, name), 'utf8')) as T;
   await log(`episode ${brief.episode} "${brief.title}" (${slug}): ${from} → ${until}`);
 
+  if (active('characters')) await makeCharacters(brief);
   if (active('shots')) {
     try {
       await writeFile(join(dir, 'shots.json'), JSON.stringify(await makeShots(brief), null, 2));

@@ -63,8 +63,8 @@ export async function makeCaptions(script: string, words: Word[], dir: string): 
   for (const [index, caption] of timed.entries()) {
     const file = join(captionDir, `${String(index).padStart(2, '0')}.png`);
     await renderCaption(caption.text, file);
-    // Hold each line until the next one starts so captions never flicker off mid-sentence.
-    const end = index + 1 < timed.length ? Math.max(caption.end, timed[index + 1].start) : caption.end + 0.4;
+    // Each line runs exactly until the next one starts: no gap (no flicker) and no overlap (two lines on screen at once).
+    const end = index + 1 < timed.length ? timed[index + 1].start - 0.01 : caption.end + 0.4;
     captions.push({ ...caption, end: Number(end.toFixed(2)), file });
   }
   await writeFile(join(dir, 'captions.json'), JSON.stringify(captions, null, 2));
