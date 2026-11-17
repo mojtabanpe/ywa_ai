@@ -1,0 +1,18 @@
+{
+  "episode": 9,
+  "slug": "test-air-superiority",
+  "title": "اگه ایران قدرت برتر هوایی دنیا بود",
+  "subtitle": "دنیای موازی",
+  "fictional": true,
+  "narration": "اگه ایران قدرتمندترین نیروی هوایی دنیا بود، جنگ آسمون چه شکلی می‌شد؟ تو این دنیای موازی، جنگنده‌های ایرانی به مصاف نیروی هوایی روسیه می‌رن. موشک‌ها ابرها رو می‌شکافن. یک لحظه تأخیر، یعنی سقوط. نبرد بالا می‌گیره؛ جنگنده‌ها شعله‌ور می‌شن و پایگاه نظامی زیر انفجارها فرو می‌ره. حالا نوبت بازگشته؛ اما همه سالم برنمی‌گردن. حتی وقتی آسمون دست توئه… پیروزی چه بهایی داره؟",
+  "shots": [
+    { "prompt": "Pilot launching a futuristic fighter jet at dawn, cinematic, vertical 9:16", "seconds": 8 },
+    { "prompt": "Fighter jets battling above the clouds, missiles cutting through, vertical 9:16", "seconds": 8 },
+    { "prompt": "Fighter jets engaging in a dogfight, burning jet falling, vertical 9:16", "seconds": 8 },
+    { "prompt": "Jet attacking a military base with explosions, vertical 9:16", "seconds": 8 },
+    { "prompt": "Damaged jets returning home at sunset, vertical 9:16", "seconds": 8 }
+  ],
+  "caption": "اگه ایران قدرتمندترین نیروی هوایی دنیا بود، جنگ آسمون چه شکلی می‌شد؟ ✈️🔥\n\nایران در دنیای موازی | قسمت ۹\nروایتی کاملاً تخیلی، ساخته‌شده با هوش مصنوعی.\n\nبه نظرت پیروزی به این بها می‌ارزه؟",
+  "hashtags": ["هوش_مصنوعی", "دنیای_موازی", "تاریخ_جایگزین", "AIVideo", "GoogleFlow", "ywa_ai"],
+  "coverAt": 3
+}

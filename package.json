@@ -8,6 +8,9 @@
   },
   "scripts": {
     "reel:free": "VIDEO_MODE=free TS_NODE_COMPILER_OPTIONS='{\"module\":\"CommonJS\",\"moduleResolution\":\"node\",\"ignoreDeprecations\":\"6.0\"}' ts-node --transpile-only tools/free-reel.ts",
+    "voice:test": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"CommonJS\",\"moduleResolution\":\"node\",\"ignoreDeprecations\":\"6.0\"}' ts-node --transpile-only tools/voice-test.ts",
+    "voice:rank": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"CommonJS\",\"moduleResolution\":\"node\",\"ignoreDeprecations\":\"6.0\"}' ts-node --transpile-only tools/voice-rank.ts",
+    "episode": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"CommonJS\",\"moduleResolution\":\"node\",\"ignoreDeprecations\":\"6.0\"}' ts-node --transpile-only tools/episode/run.ts",
     "dev:api": "nx serve api",
     "dev:admin": "nx serve admin",
     "build": "nx run-many -t build --projects=api,admin",

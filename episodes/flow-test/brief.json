@@ -1,0 +1,13 @@
+{
+  "episode": 99,
+  "slug": "flow-test",
+  "title": "آزمایش خط تولید",
+  "fictional": true,
+  "narration": "این یک آزمایش کوتاه برای ساخت خودکار ویدیوست.",
+  "shots": [
+    { "prompt": "Cinematic vertical 9:16 shot: a lone Persian astronaut standing on a red desert planet at sunrise, slow camera push-in, dust drifting, photorealistic, no text, no logos", "seconds": 8 }
+  ],
+  "caption": "آزمایش",
+  "hashtags": ["test"],
+  "coverAt": 2
+}
