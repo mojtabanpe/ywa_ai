@@ -82,7 +82,11 @@ export async function makeShots(brief: Brief) {
       attempt: async () => {
         await candidate.attempt();
         const info = probe(file);
-        if (info.duration < shot.seconds - 0.5 || info.height <= info.width) throw new Error(`unusable shot: ${info.width}×${info.height}, ${info.duration.toFixed(1)} s`);
+        // NaN comparisons are false, so a still image (duration N/A) used to pass this check; reject it explicitly.
+        if (!info.isVideo || info.duration < shot.seconds - 0.5 || info.height <= info.width) {
+          rmSync(file, { force: true });
+          throw new Error(`unusable shot: ${info.isVideo ? 'video' : 'not a video'}, ${info.width}×${info.height}, ${Number.isFinite(info.duration) ? info.duration.toFixed(1) : 'no'} s`);
+        }
         // A shot identical to another shot of this episode means the wrong clip was downloaded.
         const digest = (path: string) => createHash('md5').update(readFileSync(path)).digest('hex');
         const twin = brief.shots.map((_, other) => shotFile(brief.slug, other)).find((other) => other !== file && existsSync(other) && digest(other) === digest(file));

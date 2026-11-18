@@ -59,7 +59,9 @@ async function readCredits(page: Page) {
   await click(page, 'div[aria-label="Account details"]');
   await sleep(1500);
   const text = await page.evaluate(() => document.body.innerText);
-  await page.keyboard.press('Escape');
+  // Escape does not close this account card, and left open it covers part of the page.
+  await click(page, 'button[aria-label="Close account panel"]');
+  await sleep(500);
   const match = /([\d,]+) Google Flow credits/.exec(text);
   if (!match) throw new Error(/not available in your country/i.test(text) ? 'Flow is not available for this account' : 'could not read the Flow credit balance');
   return Number(match[1].replace(/,/g, ''));
@@ -139,23 +141,42 @@ async function configure(page: Page, settings: Settings) {
   return summary;
 }
 
-/** Index of the Download button whose batch shows this prompt (newest first), or -1. */
-function finishedBatchIndex(page: Page, prompt: string) {
-  return page.evaluate((text) => {
-    const wanted = text.replace(/\s+/g, ' ').trim().slice(0, 80);
-    const downloads = (node: Element) => node.querySelectorAll('button[aria-label=Download]').length;
-    const buttons = [...document.querySelectorAll('button[aria-label=Download]')];
-    return buttons.findIndex((button) => {
-      // A button's own batch = the largest ancestor that still holds only this one Download button. Climbing past it
-      // reaches neighbours: a batch still generating has no Download button, so its prompt used to be credited to
-      // the previous finished batch, and that older clip was downloaded for the new shot.
-      let own: HTMLElement = button as HTMLElement;
-      while (own.parentElement && downloads(own.parentElement) === 1) own = own.parentElement;
-      // The prompt must START a line: a plain "includes" also matched a longer prompt that contained this one.
-      return own.innerText.split('\n').some((line) => line.replace(/\s+/g, ' ').trim().startsWith(wanted));
-    });
-  }, prompt);
+type ResultKind = 'video' | 'image';
+
+/**
+ * Flow's results (Nov 2026 layout): one row per batch, a tile (`flow-video-tile` / `flow-image-tile`) and a
+ * `flow-batch-info` panel holding that batch's Download button, its prompt and the ingredient chips. Uploaded files are
+ * rows too (image tile, no prompt). Returns, for the batches whose prompt starts with this one and whose tile is the
+ * wanted kind, whether one has finished (its index among all `flow-batch-info` panels) and whether one exists at all
+ * (a batch still generating). Matching only inside a row matters: climbing the page from a lone Download button used
+ * to reach the whole page, so an uploaded ingredient image was downloaded as a video shot.
+ */
+function findBatch(page: Page, prompt: string, kind: ResultKind) {
+  return page.evaluate(
+    ({ text, kind }) => {
+      const norm = (value: string) => value.replace(/\s+/g, ' ').trim();
+      const wanted = norm(text).slice(0, 60);
+      const panels = [...document.querySelectorAll('flow-batch-info')];
+      let finished = -1;
+      let present = false;
+      panels.forEach((panel, index) => {
+        const row = panel.parentElement;
+        // The panel may show the prompt cut short ("…"): compare as far as both go, but never on a tiny fragment.
+        const shown = norm((panel.querySelector('flow-expandable-prompt') as HTMLElement | null)?.innerText ?? '').replace(/(…|\.\.\.)$/, '').trim();
+        if (!row || shown.length < Math.min(20, wanted.length) || !(shown.startsWith(wanted) || wanted.startsWith(shown))) return;
+        const tile = row.querySelector(kind === 'video' ? 'flow-video-tile' : 'flow-image-tile');
+        const other = row.querySelector(kind === 'video' ? 'flow-image-tile' : 'flow-video-tile');
+        if (other && !tile) return;
+        present = true;
+        if (finished < 0 && tile && panel.querySelector('button[aria-label=Download]')) finished = index;
+      });
+      return { finished, present };
+    },
+    { text: prompt, kind },
+  );
 }
+
+const resultCount = (page: Page) => page.evaluate(() => document.querySelectorAll('flow-grid-tile-container').length);
 
 /** Opens the episode's project on an account that has enough credits; returns the page and the balance. */
 async function openFor(brief: Brief, account: number, cost: number) {
@@ -184,9 +205,14 @@ const promptBoxText = (page: Page) =>
  * starts). Since Nov 2026 Flow ignores a DOM `element.click()` on that button, so the prompt sat in the box until the
  * 10-minute timeout; it needs a real pointer click. Fails within a minute instead of waiting for a result that never comes.
  */
-async function submit(page: Page, prompt: string) {
+async function submit(page: Page, prompt: string, kind: ResultKind) {
   const wanted = prompt.replace(/\s+/g, ' ').trim().slice(0, 40);
-  const pending = async () => (await promptBoxText(page)).replace(/\s+/g, ' ').startsWith(wanted);
+  const tilesBefore = await resultCount(page);
+  // Taken = the prompt left the box AND a new batch shows up (a new tile, or a row with this prompt). An empty box
+  // alone is not proof: a run once logged "generating", closed the page 11 s later and no generation existed.
+  const taken = async () =>
+    !(await promptBoxText(page)).replace(/\s+/g, ' ').includes(wanted) &&
+    ((await resultCount(page)) > tilesBefore || (await findBatch(page, prompt, kind)).present);
   const button = page.locator('button[aria-label="Start generation"]').last();
   if (!(await button.count())) throw new Error('Flow: the "Start generation" button was not found; the page layout may have changed');
   for (const attempt of ['click', 'enter'] as const) {
@@ -200,15 +226,15 @@ async function submit(page: Page, prompt: string) {
     const deadline = Date.now() + SUBMIT_CONFIRM_MS / 2;
     while (Date.now() < deadline) {
       await sleep(1500);
-      if (!(await pending())) return;
+      if (await taken()) return;
     }
   }
-  throw new Error(`Flow did not start the generation: the prompt is still in the box after ${SUBMIT_CONFIRM_MS / 1000} s (the send control may have changed)`);
+  throw new Error(`Flow did not start the generation: no new batch ${SUBMIT_CONFIRM_MS / 1000} s after sending (the send control may have changed)`);
 }
 
 /** Types the prompt, generates once (unless this prompt already finished in the project), and saves the result. */
-async function generate(page: Page, prompt: string, file: string, label: string) {
-  if (await finishedBatchIndex(page, prompt) >= 0) {
+async function generate(page: Page, prompt: string, file: string, label: string, kind: ResultKind) {
+  if ((await findBatch(page, prompt, kind)).finished >= 0) {
     await log(`${label}: already generated in this project, downloading it`);
   } else {
     // Failed generations stay in the project as "Failed" cards; only a new one belongs to this attempt.
@@ -228,7 +254,7 @@ async function generate(page: Page, prompt: string, file: string, label: string)
     }
     await page.keyboard.insertText(prompt);
     await sleep(500);
-    await submit(page, prompt);
+    await submit(page, prompt, kind);
     await log(`${label}: generating`);
     // Wait for this prompt's finished batch (its Download button appears when the result is ready) or a new Failed card.
     const started = Date.now();
@@ -240,17 +266,23 @@ async function generate(page: Page, prompt: string, file: string, label: string)
       if (failed.length > failedBefore) throw new Error(`Flow refused: ${failed[0]}`);
       // Flow renders only the items on screen, so counting Download buttons misses new results in a full project;
       // wait for the batch that shows this exact prompt instead (the newest is at the top).
-      if ((await finishedBatchIndex(page, prompt)) >= 0) break;
+      if ((await findBatch(page, prompt, kind)).finished >= 0) break;
     }
     await sleep(3000); // let the new batch settle before downloading
   }
-  const batch = await finishedBatchIndex(page, prompt);
-  if (batch < 0) throw new Error('the finished result for this prompt was not found on the page');
+  const batch = (await findBatch(page, prompt, kind)).finished;
+  if (batch < 0) throw new Error(`the finished ${kind} for this prompt was not found on the page`);
   // Playwright takes over downloads on a CDP-connected Chrome (they never reach ~/Downloads), so save it from the event.
   const [download] = await Promise.all([
     page.waitForEvent('download', { timeout: 120_000 }),
-    page.evaluate((i) => (document.querySelectorAll('button[aria-label=Download]')[i] as HTMLElement).click(), batch),
+    page.evaluate((i) => (document.querySelectorAll('flow-batch-info')[i].querySelector('button[aria-label=Download]') as HTMLElement).click(), batch),
   ]);
+  const name = download.suggestedFilename();
+  const expected = kind === 'video' ? /\.(mp4|mov|webm)$/i : /\.(jpe?g|png|webp)$/i;
+  if (!expected.test(name)) {
+    await download.cancel().catch(() => undefined);
+    throw new Error(`Flow offered "${name}" for this ${kind}; refusing it (wrong result picked)`);
+  }
   await download.saveAs(file);
   await log(`${label}: saved (${download.suggestedFilename()})`);
 }
@@ -260,7 +292,7 @@ export async function flowImage(brief: Brief, prompt: string, file: string, acco
   const { page } = await openFor(brief, account, 0);
   try {
     await log(`flow u${account}: ${await configure(page, { mode: 'image', modelLabel: 'Nano Banana 2.1', aspect: '3:4' })}`);
-    await generate(page, prompt, file, `flow u${account} image`);
+    await generate(page, prompt, file, `flow u${account} image`, 'image');
   } catch (error) {
     await page.screenshot({ path: `${file}.error.png` }).catch(() => undefined);
     throw error;
@@ -280,7 +312,7 @@ export async function flowShot(brief: Brief, index: number, shot: Shot, file: st
     const settings = await configure(page, { mode: 'video', modelLabel: model.label, aspect: '9:16', seconds: model.fixedSeconds ? undefined : shot.seconds, ingredients: references.length > 0 });
     await log(`flow u${account}: ${settings}; ${credits} credits, shot costs ${cost}`);
     if (references.length) await attachIngredients(page, references);
-    await generate(page, shot.prompt, file, `flow u${account} shot ${index + 1}`);
+    await generate(page, shot.prompt, file, `flow u${account} shot ${index + 1}`, 'video');
   } catch (error) {
     await page.screenshot({ path: join(outputDir(brief.slug), `flow-shot-${index + 1}-u${account}.png`) }).catch(() => undefined);
     throw error;
@@ -289,7 +321,9 @@ export async function flowShot(brief: Brief, index: number, shot: Shot, file: st
   }
 }
 
-const ingredientCount = (page: Page) => page.evaluate(() => document.querySelectorAll('img[alt="Ingredient image"]').length);
+/** Ingredients in the prompt box only: finished batches show their ingredients with the same alt text. */
+const ingredientCount = (page: Page) =>
+  page.evaluate(() => document.querySelector('.base-prompt-box')?.querySelectorAll('img[alt="Ingredient image"]').length ?? 0);
 
 /**
  * Adds reference images to the prompt box (Ingredients mode). In the "+" picker, clicking an asset adds it at once.
@@ -298,7 +332,7 @@ const ingredientCount = (page: Page) => page.evaluate(() => document.querySelect
 async function attachIngredients(page: Page, files: string[]) {
   // Flow keeps the prompt box (and its ingredients) between visits; start each shot from an empty box.
   if ((await ingredientCount(page)) > 0) {
-    await click(page, 'button[aria-label="Clear prompt"]');
+    await click(page, '.base-prompt-box button[aria-label="Clear prompt"]');
     for (let i = 0; i < 5 && (await ingredientCount(page)) > 0; i++) await sleep(1000);
     if ((await ingredientCount(page)) > 0) throw new Error('could not clear the ingredients left in the prompt box');
   }

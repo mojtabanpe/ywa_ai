@@ -46,11 +46,17 @@ export function run(command: string, args: string[], options: { input?: string; 
 export const ffmpeg = (args: string[]) => run('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', ...args]);
 
 export function probe(file: string) {
-  const out = run('ffprobe', ['-v', 'error', '-show_entries', 'format=duration:stream=codec_type,width,height', '-of', 'json', file]);
-  const data = JSON.parse(out) as { format: { duration: string }; streams: Array<{ codec_type: string; width?: number; height?: number }> };
+  const out = run('ffprobe', ['-v', 'error', '-show_entries', 'format=duration,format_name:stream=codec_type,codec_name,width,height', '-of', 'json', file]);
+  const data = JSON.parse(out) as {
+    format: { duration?: string; format_name?: string };
+    streams: Array<{ codec_type: string; codec_name?: string; width?: number; height?: number }>;
+  };
   const video = data.streams.find((stream) => stream.codec_type === 'video');
+  const duration = Number(data.format.duration);
   return {
-    duration: Number(data.format.duration),
+    duration,
+    /** A still image (JPEG/PNG/WebP) also probes as one "video" stream, but with no finite duration. */
+    isVideo: Boolean(video) && Number.isFinite(duration) && duration > 0 && !/^(mjpeg|png|webp|bmp|gif)$/.test(video?.codec_name ?? '') && !/image2|_pipe$/.test(data.format.format_name ?? ''),
     width: video?.width ?? 0,
     height: video?.height ?? 0,
     hasAudio: data.streams.some((stream) => stream.codec_type === 'audio'),
