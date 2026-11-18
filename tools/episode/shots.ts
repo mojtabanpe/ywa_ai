@@ -1,7 +1,8 @@
 /* Shot generation with the owner's provider order: Flow (both usable accounts) → Veo API → Higgsfield API.
  * A shot file already on disk is kept, so a rerun only makes what is missing. */
 import axios from 'axios';
-import { existsSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { existsSync, readFileSync, rmSync } from 'node:fs';
 import { writeFile } from 'node:fs/promises';
 import { shotFile } from './assemble';
 import { Brief, Shot } from './brief';
@@ -82,6 +83,13 @@ export async function makeShots(brief: Brief) {
         await candidate.attempt();
         const info = probe(file);
         if (info.duration < shot.seconds - 0.5 || info.height <= info.width) throw new Error(`unusable shot: ${info.width}×${info.height}, ${info.duration.toFixed(1)} s`);
+        // A shot identical to another shot of this episode means the wrong clip was downloaded.
+        const digest = (path: string) => createHash('md5').update(readFileSync(path)).digest('hex');
+        const twin = brief.shots.map((_, other) => shotFile(brief.slug, other)).find((other) => other !== file && existsSync(other) && digest(other) === digest(file));
+        if (twin) {
+          rmSync(file);
+          throw new Error(`downloaded clip is identical to ${twin}; refusing it`);
+        }
       },
     })));
     used.push({ shot: index + 1, provider: name });

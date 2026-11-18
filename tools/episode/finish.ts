@@ -76,8 +76,9 @@ export async function upload(brief: Brief, final: string, cover: string) {
   // Uploads go through xray's SOCKS port: over its HTTP port (7890) large uploads hang at 100 % waiting for Drive's reply.
   const uploadProxy = env('RCLONE_PROXY_URL') || 'socks5://127.0.0.1:7891';
   const proxyEnv = { ...process.env, HTTPS_PROXY: uploadProxy, HTTP_PROXY: uploadProxy };
-  // The tunnel stalls on long requests: small chunks and short timeouts make a stall fail fast and retry.
-  const flags = ['--drive-chunk-size', '4M', '--timeout', '45s', '--contimeout', '15s', '--low-level-retries', '30', '--retries', '5'];
+  // One request per file: chunked (resumable) uploads through the tunnel kept hanging at 100 % waiting for Drive's
+  // final reply, while a single request finished in seconds. Short timeouts make a stall fail fast and retry.
+  const flags = ['--drive-upload-cutoff', '256M', '--timeout', '60s', '--contimeout', '15s', '--low-level-retries', '10', '--retries', '3'];
   for (const [source, target] of [[final, `${name}.mp4`], [cover, `${name}_cover.jpg`]]) {
     await log(`upload: ${target}`);
     run('rclone', ['copyto', source, `ywa:${target}`, ...flags], { env: proxyEnv });

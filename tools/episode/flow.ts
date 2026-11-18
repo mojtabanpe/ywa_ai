@@ -143,16 +143,16 @@ async function configure(page: Page, settings: Settings) {
 function finishedBatchIndex(page: Page, prompt: string) {
   return page.evaluate((text) => {
     const wanted = text.replace(/\s+/g, ' ').trim().slice(0, 80);
+    const downloads = (node: Element) => node.querySelectorAll('button[aria-label=Download]').length;
     const buttons = [...document.querySelectorAll('button[aria-label=Download]')];
     return buttons.findIndex((button) => {
-      let node: HTMLElement | null = button as HTMLElement;
-      for (let depth = 0; node && depth < 6; depth++, node = node.parentElement) {
-        // The prompt must START a line of the batch text: a plain "includes" also matched a longer, different prompt
-        // that merely contained this one (e.g. "Cyrus the Great, <this prompt>").
-        const startsALine = node.innerText.split('\n').some((line) => line.replace(/\s+/g, ' ').trim().startsWith(wanted));
-        if (startsALine) return node.querySelectorAll('button[aria-label=Download]').length === 1;
-      }
-      return false;
+      // A button's own batch = the largest ancestor that still holds only this one Download button. Climbing past it
+      // reaches neighbours: a batch still generating has no Download button, so its prompt used to be credited to
+      // the previous finished batch, and that older clip was downloaded for the new shot.
+      let own: HTMLElement = button as HTMLElement;
+      while (own.parentElement && downloads(own.parentElement) === 1) own = own.parentElement;
+      // The prompt must START a line: a plain "includes" also matched a longer prompt that contained this one.
+      return own.innerText.split('\n').some((line) => line.replace(/\s+/g, ' ').trim().startsWith(wanted));
     });
   }, prompt);
 }
