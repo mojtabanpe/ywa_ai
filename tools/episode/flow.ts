@@ -174,6 +174,38 @@ async function openFor(brief: Brief, account: number, cost: number) {
   }
 }
 
+const SUBMIT_CONFIRM_MS = 45_000;
+
+const promptBoxText = (page: Page) =>
+  page.evaluate(() => (document.querySelector('[contenteditable=true][role=textbox]') as HTMLElement | null)?.innerText.trim() ?? '');
+
+/**
+ * Presses Flow's send button and waits until Flow has taken the prompt (it empties the prompt box when a generation
+ * starts). Since Nov 2026 Flow ignores a DOM `element.click()` on that button, so the prompt sat in the box until the
+ * 10-minute timeout; it needs a real pointer click. Fails within a minute instead of waiting for a result that never comes.
+ */
+async function submit(page: Page, prompt: string) {
+  const wanted = prompt.replace(/\s+/g, ' ').trim().slice(0, 40);
+  const pending = async () => (await promptBoxText(page)).replace(/\s+/g, ' ').startsWith(wanted);
+  const button = page.locator('button[aria-label="Start generation"]').last();
+  if (!(await button.count())) throw new Error('Flow: the "Start generation" button was not found; the page layout may have changed');
+  for (const attempt of ['click', 'enter'] as const) {
+    if (attempt === 'click') {
+      if (await button.isDisabled()) throw new Error('Flow: the "Start generation" button is disabled');
+      await button.click({ timeout: 10_000 });
+    } else {
+      await log('flow: the send button did not start a generation; trying Enter in the prompt box');
+      await page.locator('[contenteditable=true][role=textbox]').last().press('Enter');
+    }
+    const deadline = Date.now() + SUBMIT_CONFIRM_MS / 2;
+    while (Date.now() < deadline) {
+      await sleep(1500);
+      if (!(await pending())) return;
+    }
+  }
+  throw new Error(`Flow did not start the generation: the prompt is still in the box after ${SUBMIT_CONFIRM_MS / 1000} s (the send control may have changed)`);
+}
+
 /** Types the prompt, generates once (unless this prompt already finished in the project), and saves the result. */
 async function generate(page: Page, prompt: string, file: string, label: string) {
   if (await finishedBatchIndex(page, prompt) >= 0) {
@@ -189,9 +221,14 @@ async function generate(page: Page, prompt: string, file: string, label: string)
     const failedBefore = (await failedCards()).length;
     const box = page.locator('[contenteditable=true]').last();
     await box.click();
+    // Flow keeps unsent text in the box between visits; typing after it would send both prompts as one.
+    if (await promptBoxText(page)) {
+      await page.keyboard.press('Meta+A');
+      await page.keyboard.press('Backspace');
+    }
     await page.keyboard.insertText(prompt);
     await sleep(500);
-    await click(page, 'button[aria-label="Start generation"]');
+    await submit(page, prompt);
     await log(`${label}: generating`);
     // Wait for this prompt's finished batch (its Download button appears when the result is ready) or a new Failed card.
     const started = Date.now();
