@@ -64,14 +64,37 @@ function itemFromEpisode(slug: string): Item | undefined {
 }
 
 async function upload(page: Page, item: Item) {
-  await page.goto(`https://studio.youtube.com/channel/${CHANNEL}`, { waitUntil: 'domcontentloaded' });
+  // An interrupted earlier upload of this item is resumed instead of starting a second copy.
+  await page.goto(`https://studio.youtube.com/channel/${CHANNEL}/videos/short`, { waitUntil: 'domcontentloaded' });
   await page.bringToFront(); // Studio does not render in a background tab
-  const create = page.getByRole('button', { name: 'Create', exact: true }).first();
-  await create.waitFor({ timeout: 60_000 });
-  await create.click();
-  await page.getByText('Upload videos', { exact: true }).first().click();
+  await page.waitForSelector('ytcp-video-row', { timeout: 60_000 }).catch(() => undefined);
   await page.waitForTimeout(2000);
-  await page.setInputFiles('input[type=file]', item.file);
+  const interrupted = page.locator('ytcp-video-row', { hasText: item.title }).filter({ hasText: 'Upload interrupted' }).first();
+  if (await interrupted.count()) {
+    console.log('  resuming an interrupted upload');
+    const [chooser] = await Promise.all([
+      page.waitForEvent('filechooser', { timeout: 15_000 }),
+      interrupted.getByRole('button', { name: 'Resume upload' }).first().click(),
+    ]);
+    await chooser.setFiles(item.file);
+    // Resuming opens the video's details page (not the upload dialog); the settings chosen before the interruption
+    // are kept and YouTube publishes once the file is complete. Stay on the page until then, then check.
+    for (let i = 0; i < 150; i++) {
+      const text = await page.evaluate(() => document.body.innerText).catch(() => '');
+      if (!/\d+% uploaded|Uploading video/i.test(text)) break;
+      await page.waitForTimeout(2000);
+    }
+    const id = /\/video\/([\w-]+)/.exec(page.url())?.[1] ?? '';
+    if (id && (await isPublic(page, id))) return { url: `https://youtube.com/shorts/${id}`, id };
+    throw new Error(`resumed upload finished but the video is not public yet; check it in Studio (${page.url()})`);
+  } else {
+    const create = page.getByRole('button', { name: 'Create', exact: true }).first();
+    await create.waitFor({ timeout: 60_000 });
+    await create.click();
+    await page.getByText('Upload videos', { exact: true }).first().click();
+    await page.waitForTimeout(2000);
+    await page.setInputFiles('input[type=file]', item.file);
+  }
   const boxes = page.locator('ytcp-uploads-dialog #textbox');
   await boxes.first().waitFor({ timeout: 120_000 });
   await page.waitForTimeout(3000);
@@ -98,6 +121,13 @@ async function upload(page: Page, item: Item) {
   }
   await page.click('tp-yt-paper-radio-button[name=PUBLIC]');
   await page.waitForTimeout(1000);
+  // Never publish or leave the page while the file is still uploading: leaving interrupts the upload.
+  for (let i = 0; ; i++) {
+    const progress = await page.evaluate(() => document.querySelector('ytcp-uploads-dialog ytcp-video-upload-progress')?.textContent?.replace(/\s+/g, ' ') ?? '');
+    if (/upload complete|processing|checks complete|processed/i.test(progress) && !/uploading/i.test(progress)) break;
+    if (i >= 150) throw new Error(`upload did not finish within 5 minutes (${progress.trim().slice(0, 80)})`);
+    await page.waitForTimeout(2000);
+  }
   await page.click('ytcp-uploads-dialog #done-button');
   const match = /shorts\/([\w-]+)|v=([\w-]+)|youtu\.be\/([\w-]+)/.exec(link);
   const id = match?.[1] ?? match?.[2] ?? match?.[3] ?? '';

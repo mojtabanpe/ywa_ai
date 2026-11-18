@@ -1,0 +1,18 @@
+{
+  "episode": 14,
+  "driveNumber": 15,
+  "slug": "surena",
+  "title": "اگه سورنا زنده می‌موند",
+  "subtitle": "ایران در دنیای موازی",
+  "youtubeTitle": "اگر سورنا زنده می‌ماند | نبرد حران | ایران در دنیای موازی",
+  "fictional": true,
+  "narration": "سال ۵۳ پیش از میلاد، صحرای حران. سورنا، سردار جوان اشکانی، با سواران کماندار جلوی قدرتمندترین ارتش دنیا ایستاده. باران تیر روی لشکر روم می‌باره. بعد، زره‌پوشان سنگین اشکانی مثل یه دیوار آهنی به صف رومی‌ها می‌کوبن. توی تاریخ واقعی، شاه از حسادت سورنا رو کشت. اگه زنده می‌موند، دنیا چی می‌شد؟",
+  "shots": [
+    { "prompt": "Epic low tracking shot in a blazing desert: ancient Parthian horse archers in light armor gallop at full speed, turn backwards in the saddle and fire arrows behind them, dozens of riders, thick dust clouds, harsh sun glare, intense fast action, cinematic, photorealistic, vertical 9:16, no text, no logos", "seconds": 8 },
+    { "prompt": "A dense rain of arrows falls from the sky onto an ancient Roman legion locked in a shield wall formation in a scorching desert, arrows thudding into the red rectangular shields, soldiers bracing under the barrage, dust and heat haze, dramatic low angle, intense battle, no gore, cinematic, photorealistic, vertical 9:16, no text, no logos", "seconds": 8 },
+    { "prompt": "Heavily armored ancient Parthian cataphract cavalry, riders and horses fully covered in shining scale armor with long lances lowered, charge like an iron wall and crash into a Roman infantry line in the desert, shields flying, dust exploding, thunderous impact, slow motion then fast, no gore, cinematic, photorealistic, vertical 9:16, no text, no logos", "seconds": 8 }
+  ],
+  "caption": "اگه سورنا زنده می‌موند، دنیا چی می‌شد؟ 🏹🔥\n\nسال ۵۳ پیش از میلاد، صحرای حران...\nسورنا، سردار جوان اشکانی، با سواران کماندارش جلوی قدرتمندترین ارتش دنیا می‌ایسته.\nباران تیر، زره‌پوشان سنگین اشکانی، و بزرگ‌ترین شکست تاریخ روم.\nتو تاریخ واقعی، شاه از حسادت سورنا رو کشت.\n\n🎬 قسمت چهاردهم | اگر سورنا زنده می‌ماند\n🌌 ایران در دنیای موازی\n🤖 روایتی تخیلی بر پایهٔ نبرد حران، ساخته‌شده با هوش مصنوعی\n\nبه نظرت اگه سورنا زنده می‌موند، تاریخ از کجا عوض می‌شد؟ 👇",
+  "hashtags": ["سورنا", "نبرد_حران", "اشکانیان", "پارت", "روم", "تاریخ_ایران", "ایران", "تاریخ_جایگزین", "دنیای_موازی", "هوش_مصنوعی", "Parthia", "Persia", "YWA_AI"],
+  "coverAt": 3
+}
